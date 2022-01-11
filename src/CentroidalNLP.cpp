@@ -18,13 +18,6 @@ CentroidalNLP::CentroidalNLP(Agent* p_agent_)
 CentroidalNLP::~CentroidalNLP()
 { }
 
-/*
-  CoM position - 3var = 3D
-  CoM orientation - 3var = 3D
-  feet position - 3*k_legs = 3D*k_legs
-  contact forces - 3*k_legs = 3D*k_legs
-  phase duration -
-*/
 
 bool CentroidalNLP::get_nlp_info(
    Index&          n,
@@ -34,19 +27,22 @@ bool CentroidalNLP::get_nlp_info(
    IndexStyleEnum& index_style
 )
 {
-   // The problem described in CentroidalNLP.hpp has 2 variables, x, & u,
-   n = p_agent->variables_per_box*(p_agent->boxes); //TODO without -1?
+   // The problem described in CentroidalNLP.hpp has for each dt:
+   // l ->3 , k -> 3, Forces*legs -> 3*legs, Stepposition*legs -> 3*legs, CoM -> 3
+   int n_per_dt = 3 + 3 + 3*p_agent->k_legs + 3*p_agent->k_legs + 3;
+   n = n_per_dt*n_points; //TODO without -1?
 
-   // equality constraint,
-   m = p_agent->constraints_per_box*(p_agent->boxes-1);
+   // equality constraints and inequality constraints
+   // Fx*legs -> 1, Fy*legs -> 1, l ->3, k->3, CoM->3 for each dt
+   m = 11*n_points; //TODO
 
    // 2 nonzeros in the jacobian (one for x1, and one for x2),
-   nnz_jac_g = p_agent->nnz_jac_g_per_box*(p_agent->boxes-1);
+   nnz_jac_g = 9*n_points; //TODO;
 
    // and 2 nonzeros in the hessian of the lagrangian
    // (one in the hessian of the objective for x2,
    //  and one in the hessian of the constraints for x1)
-   nnz_h_lag = 0;
+   nnz_h_lag = 0; //TODO;
 
    // We use the standard fortran index style for row/col entries
    index_style = C_STYLE;//FORTRAN_STYLE;

@@ -20,7 +20,9 @@ class CentroidalNLP: public TNLP
 public:
 
   Agent* p_agent;
-
+  int n_points;
+  double dt;
+  
   /** default constructor */
   CentroidalNLP();
   CentroidalNLP(Agent* p_agent);

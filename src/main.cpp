@@ -66,7 +66,9 @@ int main(int argc, char** argv)
     // Problem for this Agent, pass pointer
 
     SmartPtr<CentroidalNLP> mynlp  = new CentroidalNLP(p_agent);
-    std::cout<<mynlp->p_agent->getLegs()<<std::endl;
+
+    mynlp->dt = dt;
+    mynlp->n_points = POINTS;
 
     // Create an instance of the IpoptApplication
     SmartPtr<IpoptApplication> app = IpoptApplicationFactory();
