@@ -1,0 +1,7 @@
+        myfile << CoM_msg.positions[j].x << "," << CoM_msg.positions[j].y << "," << CoM_msg.positions[j].z << "," << CoM_msg.linear_velocities[j].x <<  "," << CoM_msg.linear_velocities[j].y 
+        << "," << CoM_msg.linear_velocities[j].z << "," << CoM_msg.linear_accelerations[j].x << "," << CoM_msg.linear_accelerations[j].y << "," << CoM_msg.linear_accelerations[j].z << "," << 
+        footL_msg.positions[j].x << "," << footL_msg.positions[j].y << "," <<footL_msg.positions[j].z << "," << 
+        footR_msg.positions[j].x << "," << footR_msg.positions[j].y << "," <<footR_msg.positions[j].z<< "," <<VRP_msg.positions[j].x << "," <<VRP_msg.positions[j].y 
+        << "," << VRP_msg.positions[j].z <<"\n";
+
+dt = 0.01

@@ -8,11 +8,13 @@
 class Agent
 {
 public:
-
+  // by boxes we get the one cycle of leg locomotion
+  //(ex. in bipedal:move forward  left + right foot - which is two individual steps)
+  // (ex. in quaduapedal 4 individual steps is 1 cycle - means 1 box)
   int world_dim, k_legs, boxes,
     variables_per_box, constraints_per_box, nnz_jac_g_per_box;
   double mass;
-  double horizon_time;
+  double horizon_time, dt;
 
   int next_index, CoM_pos_index;
 
@@ -30,10 +32,11 @@ public:
 
   void setDim(int dim_);
   void setLegs(int legs_);
+  void setDt(double dt_);
   void setOptimizationBoxes(int boxes_);
   void setHorizonTime(int time_h_);
   void setTargetCoM_xyz(const Eigen::Vector3d& target_xyz_);
-  void setDesAvVel();
+  // void setDesAvVel();
   void storeStartingCoM_PosVel();
   void defineCoMConstraint();
   void defineFeetConstraint();

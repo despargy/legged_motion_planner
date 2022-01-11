@@ -1,4 +1,4 @@
-#include "motion_planner/Agent.hpp"
+#include "legged_motion_planner/Agent.hpp"
 
 Agent::Agent()
 {
@@ -28,19 +28,21 @@ void Agent::setLegs(int legs_){
 void Agent::setOptimizationBoxes(int boxes_){
 
   boxes = boxes_;
+}
 
+void Agent::setDt(double dt_){
+
+  dt = dt_;
 }
 
 void Agent::setHorizonTime(int time_h_){
 
   horizon_time = time_h_;
-
 }
 
 void Agent::setTargetCoM_xyz(const Eigen::Vector3d& target_xyz_){
 
   target_xyz = target_xyz_;
-
 }
 
 void Agent::storeStartingCoM_PosVel(){
@@ -61,21 +63,19 @@ void Agent::storeStartingCoM_PosVel(){
 
   starting_com_ang_vel.resize(3);
   starting_com_ang_vel.setZero();
-
-
 }
 
-void Agent::setDesAvVel(){
+// void Agent::setDesAvVel(){
+//
+//   desired_com_lin_vel(0) = target_xyz(0)/((double)boxes);
+//   desired_com_lin_vel(1) = target_xyz(1)/((double)boxes);
+//   desired_com_lin_vel(2) = target_xyz(2)/((double)boxes);
+//
+// }
 
-  desired_com_lin_vel(0) = target_xyz(0)/((double)boxes);
-  desired_com_lin_vel(1) = target_xyz(1)/((double)boxes);
-  desired_com_lin_vel(2) = target_xyz(2)/((double)boxes);
-
-}
 int Agent::getLegs(){
 
   return k_legs;
-
 }
 
 void Agent::defineCoMConstraint(){
@@ -107,7 +107,6 @@ void Agent::defineFeetConstraint(){
 
   // Feet_index = next_index;
   // next_index += variables_per_box*boxes;
-
 }
 
 void Agent::defineContactForcesConstraint(){
@@ -119,7 +118,6 @@ void Agent::defineContactForcesConstraint(){
 
   // ContactForces_index = next_index;
   // next_index += variables_per_box*boxes;
-
 }
 
 void Agent::definePhaseConstraint(){
@@ -131,5 +129,4 @@ void Agent::definePhaseConstraint(){
 
   // Phase_index = next_index;
   // next_index += variables_per_box*boxes;
-
 }

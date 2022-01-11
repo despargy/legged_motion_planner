@@ -1,21 +1,21 @@
-#include "legged_motion_planner/MotionNLP.hpp"
+#include "legged_motion_planner/CentroidalNLP.hpp"
 
 #include <cassert>
 
 using namespace Ipopt;
 
 /* Constructor. */
-MotionNLP::MotionNLP()
+CentroidalNLP::CentroidalNLP()
 { printf("This is from 'MOTION NLP' constructor\n"); }
 
-MotionNLP::MotionNLP(Agent* p_agent_)
+CentroidalNLP::CentroidalNLP(Agent* p_agent_)
 {
   printf("This is from 'MOTION NLP' constructor\n");
   p_agent = p_agent_;
 
  }
 
-MotionNLP::~MotionNLP()
+CentroidalNLP::~CentroidalNLP()
 { }
 
 /*
@@ -26,7 +26,7 @@ MotionNLP::~MotionNLP()
   phase duration -
 */
 
-bool MotionNLP::get_nlp_info(
+bool CentroidalNLP::get_nlp_info(
    Index&          n,
    Index&          m,
    Index&          nnz_jac_g,
@@ -34,7 +34,7 @@ bool MotionNLP::get_nlp_info(
    IndexStyleEnum& index_style
 )
 {
-   // The problem described in MotionNLP.hpp has 2 variables, x, & u,
+   // The problem described in CentroidalNLP.hpp has 2 variables, x, & u,
    n = p_agent->variables_per_box*(p_agent->boxes); //TODO without -1?
 
    // equality constraint,
@@ -54,7 +54,7 @@ bool MotionNLP::get_nlp_info(
    return true;
 }
 
-bool MotionNLP::get_bounds_info(
+bool CentroidalNLP::get_bounds_info(
    Index   n,
    Number* x_l,
    Number* x_u,
@@ -123,7 +123,7 @@ bool MotionNLP::get_bounds_info(
    return true;
 }
 
-bool MotionNLP::get_starting_point(
+bool CentroidalNLP::get_starting_point(
    Index   n,
    bool    init_x,
    Number* x,
@@ -154,7 +154,7 @@ bool MotionNLP::get_starting_point(
    return true;
 }
 
-bool MotionNLP::eval_f(
+bool CentroidalNLP::eval_f(
    Index         n,
    const Number* x,
    bool          new_x,
@@ -180,7 +180,7 @@ bool MotionNLP::eval_f(
   return true;
 }
 
-bool MotionNLP::eval_grad_f(
+bool CentroidalNLP::eval_grad_f(
    Index         n,
    const Number* x,
    bool          new_x,
@@ -223,7 +223,7 @@ bool MotionNLP::eval_grad_f(
    return true;
 }
 
-bool MotionNLP::eval_g(
+bool CentroidalNLP::eval_g(
    Index         n,
    const Number* x,
    bool          new_x,
@@ -265,7 +265,7 @@ bool MotionNLP::eval_g(
   return true;
 }
 
-bool MotionNLP::eval_jac_g(
+bool CentroidalNLP::eval_jac_g(
    Index         n,
    const Number* x,
    bool          new_x,
@@ -323,7 +323,7 @@ bool MotionNLP::eval_jac_g(
    return true;
 }
 
-bool MotionNLP::eval_h(
+bool CentroidalNLP::eval_h(
    Index         n,
    const Number* x,
    bool          new_x,
@@ -341,7 +341,7 @@ bool MotionNLP::eval_h(
    return false;
 }
 
-void MotionNLP::finalize_solution(
+void CentroidalNLP::finalize_solution(
    SolverReturn               status,
    Index                      n,
    const Number*              x,
@@ -362,7 +362,7 @@ void MotionNLP::finalize_solution(
    printf("f(x*) = %e\n", obj_value);
 }
 
-double MotionNLP::getQuadraticCost(const Eigen::Vector3d & final_state,
+double CentroidalNLP::getQuadraticCost(const Eigen::Vector3d & final_state,
                                                     const Eigen::Vector3d & target,
                                                     Eigen::Vector3d & gradient_f)
 {

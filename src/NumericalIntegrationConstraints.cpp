@@ -1,4 +1,4 @@
-#include "motion_planner/NumericalIntegrationConstraints.hpp"
+#include "legged_motion_planner/NumericalIntegrationConstraints.hpp"
 
 NumericalIntegrationConstraints::NumericalIntegrationConstraints() {
 
