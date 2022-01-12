@@ -5,11 +5,11 @@
 
 #include "IpTNLP.hpp"
 #include <math.h>
-#include <Eigen/Dense>
+// #include <Eigen/Dense>
 #include <iostream>
-#include "legged_motion_planner/class_csv.h"
 #include "legged_motion_planner/Agent.hpp"
 #include <legged_motion_planner/NumericalIntegrationConstraints.hpp>
+#include <legged_motion_planner/labels.h>
 
 using namespace Ipopt;
 
@@ -22,10 +22,13 @@ public:
   Agent* p_agent;
   int n_points, n_per_dt;
   double dt;
-  int index_CoM_pos, index_CoM_lin, index_CoM_ang, index_Forces, index_index_Step;
+  int index_CoM_pos, index_CoM_lin, index_CoM_ang, index_Forces, index_Step, index_ends;
+  int index_conF_eq_1, index_conF_eq_2, index_conF_eq_3, index_conF_eq_4, index_conF_eq_5, index_conF_eq_6, index_conF_eq_7; 
+  vector<labels> desired;
   /** default constructor */
   CentroidalNLP();
   CentroidalNLP(Agent* p_agent);
+  bool init_before_start();
 
   /** default destructor */
   virtual ~CentroidalNLP();

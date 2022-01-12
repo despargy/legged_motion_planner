@@ -18,6 +18,26 @@ CentroidalNLP::CentroidalNLP(Agent* p_agent_)
 CentroidalNLP::~CentroidalNLP()
 { }
 
+bool CentroidalNLP::init_before_start(
+){
+  // don't foret to init indexs to help you map x variables with CoM, l, k, Forces, Steps
+  index_CoM_pos = 0; // it has 3 so the next index is 0+3
+  index_CoM_lin = index_CoM_pos + 3; // it has 3 so the next index is 3+3
+  index_CoM_ang = index_CoM_lin + 3; // it has 3 so the next index is 6+3
+  index_Forces = index_CoM_ang + 3; // it has 3 but MANY legs(+3*p_agent->k_legs)
+  index_Step = index_Forces + 3*p_agent->k_legs;
+  index_ends = index_Step + 3*p_agent->k_legs;
+
+  index_conF_eq_1 = 0;
+  index_conF_eq_2 = index_conF_eq_1 + p_agent->k_legs;
+  index_conF_eq_3 = index_conF_eq_2 + p_agent->k_legs;
+  index_conF_eq_4 = index_conF_eq_3 + p_agent->k_legs;
+  index_conF_eq_5 = index_conF_eq_4 + p_agent->k_legs;
+  index_conF_eq_6 = index_conF_eq_5 + 3;
+  index_conF_eq_7 = index_conF_eq_5 + 3;
+
+}
+
 
 bool CentroidalNLP::get_nlp_info(
    Index&          n,
@@ -31,19 +51,12 @@ bool CentroidalNLP::get_nlp_info(
    // CoM -> 3, l ->3 , k -> 3, Forces*legs -> 3*legs, Stepposition*legs -> 3*legs
    // index_CoM_pos, index_CoM_lin, index_CoM_ang, index_Forces, index_Step;
 
-   n_per_dt = 3 + 3 + 3 + 3*p_agent->k_legs + 3*p_agent->k_legs;
+   n_per_dt = index_ends;
    n = n_per_dt*n_points; //TODO without -1?
 
-   // don't foret to init indexs to help you map x variables with CoM, l, k, Forces, Steps
-   index_CoM_pos = 0; // it has 3 so the next index is 0+3
-   index_CoM_lin = index_CoM_pos + 3; // it has 3 so the next index is 3+3
-   index_CoM_ang = index_CoM_lin + 3; // it has 3 so the next index is 6+3
-   index_Forces = index_CoM_ang + 3; // it has 3 but MANY legs
-   index_Step = index_Forces + 3*p_agent->k_legs;
-
    // equality constraints and inequality constraints
-   // Fx*legs -> 1, Fy*legs -> 1, l->3, k->3, CoM->3 BUT for each dt (multi. with dt)
-   m = 11*n_points; //TODO
+   // Fx*legs +- -> 2, Fy*legs +- -> 2, l->3, k->3, CoM->3 BUT for each dt (multi. with dt)
+   m = 13*n_points; //TODO
 
    // 2 nonzeros in the jacobian (one for x1, and one for x2),
    nnz_jac_g = 9*n_points; //TODO;
@@ -76,60 +89,57 @@ bool CentroidalNLP::get_bounds_info(
     x_u[i] = +1.0e19;
   }
 
-  // then set other bounds only for the variables you know
-  // for the first point leave it free same bound or
-  for(int i=index_CoM_pos; i < index_CoM_lin; i++) //3
+  //CoM z bounds ground - height
+  for(int pp =0; pp<n_points; pp++)
   {
-    // CoM Position
-    x_l[i] = 0; x_u[i] = 0;
-  }
-  for(int i=index_CoM_lin; i < index_CoM_ang; i++) //3
-  {
-    // CoM Lin
-    x_l[i] = 0; x_u[i] = 0;
-  }
-  for(int i=index_CoM_ang; i < index_Forces; i++) //3
-  {
-    // CoM Ang
-    x_l[i] = 0; x_u[i] = 0;
-  }
-  //leave Forces to inf, we know nothing
-  // Steps, for each leg
-  for(int ll=0; ll < p_agent->k_legs; ll++) //k_legs //TODO
-  {
-    // Init Foot Step Posiotion
-    x_l[ll+0] = desired.footL_positions; x_u[ll+0] = 0; //x
-    x_l[ll+1] = 0; x_u[ll+1] = 0; //y
-    x_l[ll+2] = 0; x_u[ll+2] = 0; //z
+    x_l[pp+index_CoM_pos+2] = 0.0 ; x_u[pp + index_CoM_pos+2] = p_agent->height;
   }
 
-   // for(int k =  p_agent->CoM_pos_index; k< (p_agent->boxes-1); k++){
-   //   // CoM possition has 3 constraints_per_box
-   //   for(int c= 0; c<3; c++){
-   //     g_l[k * p_agent->constraints_per_box + c] = 0.0; g_u[k * p_agent->constraints_per_box + c] = 0.0;
-   //   }
-   // }
-   //THE SAME FOR OTHER VARS
-   // // CoM Velocity
-   // x_l[3] = p_agent->starting_com_vel(0);
-   // x_u[3] = p_agent->starting_com_vel(0);
-   //
-   // x_l[4] = p_agent->starting_com_vel(1);
-   // x_u[4] = p_agent->starting_com_vel(1);
-   //
-   // x_l[5] = p_agent->starting_com_vel(2);
-   // x_u[5] = p_agent->starting_com_vel(2);
+  // cons bounds
 
-   // // x2 has no upper or lower bound, so we set them to
-   // // a large negative and a large positive number.
-   // // The value that is interpretted as -/+infinity can be
-   // // set in the options, but it defaults to -/+1e19
-   // x_l[1] = -1.0e19;
-   // x_u[1] = +1.0e19;
+  // for each point
+  for(int pp =0; pp<n_points; pp++)
+  {
+    // eq1 0<= μFz - Fx
+    for(int ll=0; ll<p_agent->k_legs; ll++)
+    {
+      g_l[pp + index_conF_eq_1 + ll ] = 0.0; g_u[pp + index_conF_eq_1 + ll ] = +1.0e19;
+    }
 
-   // we have one equality constraint, so we set the bounds on this constraint
-   // to be equal (and zero).
-   // g_l[0] = g_u[0] = 0.0;
+    // eq2 μFz + Fx >= 0
+    for(int ll=0; ll<p_agent->k_legs; ll++)
+    {
+      g_l[pp + index_conF_eq_2 + ll ] = 0.0; g_u[pp + index_conF_eq_2 + ll ] = +1.0e19;
+    }
+
+    // eq3 0<= μFz - Fy
+    for(int ll=0; ll<p_agent->k_legs; ll++)
+    {
+      g_l[pp + index_conF_eq_3 + ll ] = 0.0; g_u[pp + index_conF_eq_3 + ll ] = +1.0e19;
+    }
+
+    // eq4 μFz + Fy >= 0
+    for(int ll=0; ll<p_agent->k_legs; ll++)
+    {
+      g_l[pp + index_conF_eq_4 + ll ] = 0.0; g_u[pp + index_conF_eq_4 + ll ] = +1.0e19;
+    }
+
+    // eq5 but x y z l
+    g_l[pp + index_conF_eq_5 + 0 ] = 0.0; g_u[pp + index_conF_eq_5 + 0 ] = 0.0;
+    g_l[pp + index_conF_eq_5 + 1 ] = 0.0; g_u[pp + index_conF_eq_5 + 1 ] = 0.0;
+    g_l[pp + index_conF_eq_5 + 2 ] = 0.0; g_u[pp + index_conF_eq_5 + 2 ] = 0.0;
+
+    // eq6 but x y z k
+    g_l[pp + index_conF_eq_6 + 0 ] = 0.0; g_u[pp + index_conF_eq_6 + 0 ] = 0.0;
+    g_l[pp + index_conF_eq_6 + 1 ] = 0.0; g_u[pp + index_conF_eq_6 + 1 ] = 0.0;
+    g_l[pp + index_conF_eq_6 + 2 ] = 0.0; g_u[pp + index_conF_eq_6 + 2 ] = 0.0;
+
+    // eq5 but x y z c
+    g_l[pp + index_conF_eq_7 + 0 ] = 0.0; g_u[pp + index_conF_eq_7 + 0 ] = 0.0;
+    g_l[pp + index_conF_eq_7 + 1 ] = 0.0; g_u[pp + index_conF_eq_7 + 1 ] = 0.0;
+    g_l[pp + index_conF_eq_7 + 2 ] = 0.0; g_u[pp + index_conF_eq_7 + 2 ] = 0.0;
+
+  }
 
    return true;
 }
@@ -154,12 +164,39 @@ bool CentroidalNLP::get_starting_point(
    assert(init_lambda == false);
 
    //TODO why for each box??????
-   for(int k = 0; k<p_agent->boxes; k++){
+   // CoM Position
+   x[index_CoM_pos+0] = desired[0].CoM_positions(0);
+   x[index_CoM_pos+1] = desired[0].CoM_positions(1);
+   x[index_CoM_pos+2] = desired[0].CoM_positions(2);
 
-     for(int j = 0; j<p_agent->variables_per_box; j++){
-       x[k * p_agent->variables_per_box + j] = 0.0;
-     }
+   for(int i=index_CoM_lin; i < index_CoM_ang; i++) //3
+   {
+     // CoM Lin
+     x[i] = 0;
+   }
+   for(int i=index_CoM_ang; i < index_Forces; i++) //3
+   {
+     // CoM Ang
+     x[i] = 0;
+   }
 
+   //init Forces, for each leg
+   for(int ll=0; ll < p_agent->k_legs; ll++) //k_legs //TODO
+   {
+     // Init Foot Step Posiotion
+     x[index_Forces +ll+0] = 0; //x
+     x[index_Forces +ll+1] = 0; //y
+     //split grav into each force foots
+     x[index_Forces +ll+2] = (p_agent->mass * p_agent->g) / p_agent->k_legs; // z
+   }
+
+   // Steps, for each leg
+   for(int ll=0; ll < p_agent->k_legs; ll++) //k_legs //TODO
+   {
+     // Init Foot Step Posiotion
+     x[index_Step +ll+0] = desired[0].foot_position_v[ll](0); //x
+     x[index_Step +ll+1] = desired[0].foot_position_v[ll](1); //y
+     x[index_Step +ll+2] = desired[0].foot_position_v[ll](2); //z
    }
 
    return true;
@@ -172,6 +209,14 @@ bool CentroidalNLP::eval_f(
    Number&       obj_value
 )
 {
+  // double wl = 1, wk=0.8, wf=0.4, ws =0.4;
+  //
+  // for(int pp =0; pp < n_points; pp++)
+  // {
+  //   wl*sum2_l + wk*sum2_k + wf*sum2_Flegs + ws*sum2_Slegs
+  //
+  // }
+  // obj_value = wl*
   // return the value of the objective function
   const Eigen::Map<const Eigen::VectorXd> decision_vars(x, n);
 

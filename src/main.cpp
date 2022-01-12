@@ -12,21 +12,23 @@
 int main(int argc, char** argv)
 {
   bool SOLVE_IPOPT = false;
-  // read data
-  vector<labels> desired = pass_csv("/home/atom/master_ws/src/legged_motion_planner/records/DesiredTrajectory3.csv");
 
   // 3D world
   int WORLD_DIM = 3;
   //define legs
   int NUM_LEGS = 2;
-  double IND_STEP_TIME = 2.0 ; // double sup. -> 0.5sec + single sup. -> 1.5sec
   // dt
   double dt = 0.01; // in sec
   // frequency
   double freq = 1/dt;
+  // read data
+  vector<labels> desired = pass_csv("/home/atom/master_ws/src/legged_motion_planner/records/DesiredTrajectory3.csv", NUM_LEGS);
+  std::cout<<desired[0].foot_position_v[0](0)<<std::endl;
   // points to solved
   int POINTS = desired.size(); // all data - same as desired
   std::cout<<POINTS<<std::endl;
+
+  double IND_STEP_TIME = 2.0 ; // double sup. -> 0.5sec + single sup. -> 1.5sec
 
   // time to achieve goal
   double HORIZON_TIME = POINTS*dt;
@@ -69,7 +71,7 @@ int main(int argc, char** argv)
 
     mynlp->dt = dt;
     mynlp->n_points = POINTS;
-
+    mynlp->desired = desired;
     // Create an instance of the IpoptApplication
     SmartPtr<IpoptApplication> app = IpoptApplicationFactory();
     /* define parameters */

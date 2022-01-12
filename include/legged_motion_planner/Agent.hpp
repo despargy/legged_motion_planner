@@ -11,9 +11,9 @@ public:
   // by boxes we get the one cycle of leg locomotion
   //(ex. in bipedal:move forward  left + right foot - which is two individual steps)
   // (ex. in quaduapedal 4 individual steps is 1 cycle - means 1 box)
-  int world_dim, k_legs, boxes, 
+  int world_dim, k_legs, boxes,
     variables_per_box, constraints_per_box, nnz_jac_g_per_box;
-  double mass;
+  double mass, g, height;
   double horizon_time, dt;
 
   int next_index, CoM_pos_index;

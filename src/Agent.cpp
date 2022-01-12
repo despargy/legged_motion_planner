@@ -9,7 +9,9 @@ Agent::Agent()
   nnz_jac_g_per_box = 0 ;
 
   next_index = 0;
-
+  g = 9.8; //m/s^2
+  mass = 2.0; //kg
+  height = 2.0; //m
  }
 
 Agent::~Agent()
