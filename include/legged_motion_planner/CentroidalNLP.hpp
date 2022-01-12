@@ -7,7 +7,7 @@
 #include <math.h>
 #include <Eigen/Dense>
 #include <iostream>
-
+#include "legged_motion_planner/class_csv.h"
 #include "legged_motion_planner/Agent.hpp"
 #include <legged_motion_planner/NumericalIntegrationConstraints.hpp>
 
@@ -20,9 +20,9 @@ class CentroidalNLP: public TNLP
 public:
 
   Agent* p_agent;
-  int n_points;
+  int n_points, n_per_dt;
   double dt;
-  
+  int index_CoM_pos, index_CoM_lin, index_CoM_ang, index_Forces, index_index_Step;
   /** default constructor */
   CentroidalNLP();
   CentroidalNLP(Agent* p_agent);
