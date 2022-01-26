@@ -20,10 +20,11 @@ class CentroidalNLP: public TNLP
 public:
 
   Agent* p_agent;
-  int n_points, n_per_dt;
+  int n_points, n_per_dt, g_per_dt, v_per_dt, nnz_jac_g_per_dt;
   double dt;
   int index_CoM_pos, index_CoM_lin, index_CoM_ang, index_Forces, index_Step, index_ends;
-  int index_conF_eq_1, index_conF_eq_2, index_conF_eq_3, index_conF_eq_4, index_conF_eq_5, index_conF_eq_6, index_conF_eq_7; 
+  int index_conF_eq_1, index_conF_eq_2, index_conF_eq_3, index_conF_eq_4, index_conF_eq_5, index_conF_eq_6, index_conF_eq_7;
+  int index_partial_eq_1, index_partial_eq_2, index_partial_eq_3, index_partial_eq_4, index_partial_eq_5, index_partial_eq_6, index_partial_eq_7;
   vector<labels> desired;
   /** default constructor */
   CentroidalNLP();
@@ -143,6 +144,9 @@ public:
      double getQuadraticCost(const Eigen::Vector3d & final_state,
                                                          const Eigen::Vector3d & target,
                                                          Eigen::Vector3d & gradient_f);
+
+     Eigen::Vector3d crossProduct(Eigen::Vector3d vect_A, Eigen::Vector3d vect_B);
+
   private:
      /**@name Methods to block default compiler methods.
       *
