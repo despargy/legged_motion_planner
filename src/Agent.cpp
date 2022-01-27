@@ -5,10 +5,10 @@ Agent::Agent()
   printf("This is from 'AGENT' constructor\n");
 
   g = 9.8; //m/s^2
-  mass = 50.0; //kg
+  mass = 72.0; //kg
   height = 1.20952; //m
 
-   wl = 1; wk=1; wf=1; ws =1; //TODO fix weights
+   wl = 1.0; wk=0.8; wf=1.2; ws =0.9; //TODO fix weights
    mu = 0.8;
 
  }

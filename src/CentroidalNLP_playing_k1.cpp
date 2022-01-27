@@ -45,8 +45,8 @@ bool CentroidalNLP::init_before_start(
   index_partial_eq_3 = index_partial_eq_2 + p_agent->k_legs*2;
   index_partial_eq_4 = index_partial_eq_3 + p_agent->k_legs*2;
   index_partial_eq_5 = index_partial_eq_4 + p_agent->k_legs*2;
-  index_partial_eq_6 = index_partial_eq_5 + 3*(1+p_agent->k_legs*1);
-  index_partial_eq_7 = index_partial_eq_6 + 3*(2+p_agent->k_legs*4);
+  index_partial_eq_6 = index_partial_eq_5 + 3;
+  index_partial_eq_7 = index_partial_eq_6 + 3;
 
 
   // v_per_dt = n_per_dt*g_per_dt;
@@ -80,7 +80,7 @@ bool CentroidalNLP::get_nlp_info(
    std::cout<<"m = "<< m<<std::endl;
 
    // 2 nonzeros in the jacobian (one for x1, and one for x2),
-   nnz_jac_g_per_dt = p_agent->k_legs*8 + 3*(1 + p_agent->k_legs) + 3*(2 + 4*p_agent->k_legs) + 6 ;
+   nnz_jac_g_per_dt = index_partial_eq_7 + 3 ;
    // nnz_jac_g = v_per_dt*n_points; //TODO;
    nnz_jac_g = nnz_jac_g_per_dt*n_points; //TODO;
 
@@ -230,6 +230,8 @@ bool CentroidalNLP::eval_f(
 )
 {
 
+  std::cout<<"START eval_f"<<std::endl;
+
   double sum2_l=0, sum2_k=0, sum2_Flegs=0, sum2_Slegs=0;
 
   for(int pp =0; pp < n_points; pp++) // Σ from 1 to N
@@ -260,6 +262,8 @@ bool CentroidalNLP::eval_f(
 
   obj_value = 1/2*(p_agent->wl*sum2_l + p_agent->wk*sum2_k + p_agent->wf*sum2_Flegs + p_agent->ws*sum2_Slegs);
 
+  std::cout<<"END eval_f"<<std::endl;
+
   return true;
 }
 
@@ -270,6 +274,8 @@ bool CentroidalNLP::eval_grad_f(
    Number*       grad_f
 )
 {
+  std::cout<<"START eval_grad_f"<<std::endl;
+
    // return the gradient of the objective function grad_{x} f(x)
    for(int pp =0; pp < n_points; pp++)
    {
@@ -297,6 +303,10 @@ bool CentroidalNLP::eval_grad_f(
       }
 
    }
+
+   std::cout<<"END eval_grad_f"<<std::endl;
+
+
    return true;
 }
 
@@ -310,6 +320,11 @@ bool CentroidalNLP::eval_g(
 {
    // return the value of the constraints: g(x)
    // return the value of the constraints: g(x)
+
+   // for the first solution use init points
+
+   std::cout<<"START eval_g"<<std::endl;
+
    for(int pp =0; pp < n_points; pp++)
    {
 
@@ -328,44 +343,88 @@ bool CentroidalNLP::eval_g(
        g[pp*g_per_dt + index_conF_eq_4 + ll] = p_agent->mu*x[pp*n_per_dt + index_Forces + 3*ll + 2] + x[pp*n_per_dt + index_Forces + 3*ll + 1];
 
      }
-
-     double sumf_x = 0, sumf_y = 0, sumf_z = 0;
-     for(int ll=0; ll<p_agent->k_legs; ll++)
+     if (pp == 0)
      {
-       sumf_x += x[ pp*n_per_dt + index_Forces + 3*ll + 0];
-       sumf_y += x[ pp*n_per_dt + index_Forces + 3*ll + 1];
-       sumf_z += x[ pp*n_per_dt + index_Forces + 3*ll + 2];
+       double sumf_x = 0, sumf_y = 0, sumf_z = 0;
+       for(int ll=0; ll<p_agent->k_legs; ll++)
+       {
+         sumf_x += 0; // same as init Fx
+         sumf_y += 0; // same as init Fy
+         sumf_z += (p_agent->mass * p_agent->g) / p_agent->k_legs;  // same as init Fz
+       }
+
+       g[pp*g_per_dt + index_conF_eq_5 + 0] = x[pp*n_per_dt + index_CoM_lin + 0] - (sumf_x + p_agent->mass*p_agent->g)*dt - desired[0].CoM_linear_velocities(0); //x
+       g[pp*g_per_dt + index_conF_eq_5 + 1] = x[pp*n_per_dt + index_CoM_lin + 1] - (sumf_y + p_agent->mass*p_agent->g)*dt - desired[0].CoM_linear_velocities(1); //y
+       g[pp*g_per_dt + index_conF_eq_5 + 2] = x[pp*n_per_dt + index_CoM_lin + 2] - (sumf_z + p_agent->mass*p_agent->g)*dt - desired[0].CoM_linear_velocities(2); //z
+
+       double sum_cross_x = 0, sum_cross_y = 0, sum_cross_z = 0;
+       for(int ll=0; ll<p_agent->k_legs; ll++)
+       {
+         // cross_P(0) = vect_A(0) * vect_B(0) - vect_A(2) * vect_B(1);
+         sum_cross_x += desired[0].CoM_positions(0) - ( desired[0].foot_position_v[ll](0)*0
+                                                                                -  desired[0].foot_position_v[ll](2)*0);
+
+         // cross_P(1) = vect_A(2) * vect_B(0) - vect_A(0) * vect_B(2);
+         sum_cross_y += desired[0].CoM_positions(1) - ( desired[0].foot_position_v[ll](2)*0
+                                                                                -  desired[0].foot_position_v[ll](0)*(p_agent->mass * p_agent->g) / p_agent->k_legs);
+
+         // cross_P(2) = vect_A(0) * vect_B(1) - vect_A(1) * vect_B(0);
+         sum_cross_z += desired[0].CoM_positions(2) - ( desired[0].foot_position_v[ll](0)*x[(pp-1)*n_per_dt + index_Forces + 3*ll + 1]
+                                                                                -  desired[0].foot_position_v[ll](1)*0);
+
+       }
+       g[pp*g_per_dt + index_conF_eq_6 + 0] = x[pp*n_per_dt + index_CoM_ang + 0] - sum_cross_x*dt -  0; //x
+       g[pp*g_per_dt + index_conF_eq_6 + 1] = x[pp*n_per_dt + index_CoM_ang + 1] - sum_cross_y*dt -  0; //y
+       g[pp*g_per_dt + index_conF_eq_6 + 2] = x[pp*n_per_dt + index_CoM_ang + 2] - sum_cross_z*dt -  0; //z
+
+       g[pp*g_per_dt + index_conF_eq_7 + 0] = x[pp*n_per_dt + index_CoM_pos + 0] -  desired[0].CoM_positions(0) - 1/p_agent->mass*desired[0].CoM_linear_velocities(0)*dt; //x
+       g[pp*g_per_dt + index_conF_eq_7 + 1] = x[pp*n_per_dt + index_CoM_pos + 1] -  desired[0].CoM_positions(1) - 1/p_agent->mass*desired[0].CoM_linear_velocities(1)*dt; //y
+       g[pp*g_per_dt + index_conF_eq_7 + 2] = x[pp*n_per_dt + index_CoM_pos + 2] -  desired[0].CoM_positions(2) - 1/p_agent->mass*desired[0].CoM_linear_velocities(2)*dt; //z
+
+     }
+     else
+     {
+       double sumf_x = 0, sumf_y = 0, sumf_z = 0;
+       for(int ll=0; ll<p_agent->k_legs; ll++)
+       {
+         sumf_x += x[ (pp-1)*n_per_dt + index_Forces + 3*ll + 0];
+         sumf_y += x[ (pp-1)*n_per_dt + index_Forces + 3*ll + 1];
+         sumf_z += x[ (pp-1)*n_per_dt + index_Forces + 3*ll + 2];
+       }
+
+       g[pp*g_per_dt + index_conF_eq_5 + 0] = x[pp*n_per_dt + index_CoM_lin + 0] - (sumf_x + p_agent->mass*p_agent->g)*dt -  x[(pp-1)*n_per_dt + index_CoM_lin + 0]; //x
+       g[pp*g_per_dt + index_conF_eq_5 + 1] = x[pp*n_per_dt + index_CoM_lin + 1] - (sumf_y + p_agent->mass*p_agent->g)*dt -  x[(pp-1)*n_per_dt + index_CoM_lin + 1]; //y
+       g[pp*g_per_dt + index_conF_eq_5 + 2] = x[pp*n_per_dt + index_CoM_lin + 2] - (sumf_z + p_agent->mass*p_agent->g)*dt -  x[(pp-1)*n_per_dt + index_CoM_lin + 2]; //z
+
+       double sum_cross_x = 0, sum_cross_y = 0, sum_cross_z = 0;
+       for(int ll=0; ll<p_agent->k_legs; ll++)
+       {
+         // cross_P(0) = vect_A(0) * vect_B(0) - vect_A(2) * vect_B(1);
+         sum_cross_x += x[(pp-1)*n_per_dt + index_CoM_pos + 0] - ( x[(pp-1)*n_per_dt + index_Step + 3*ll + 0]*x[(pp-1)*n_per_dt + index_Forces + 3*ll + 0]
+                                                                                -  x[(pp-1)*n_per_dt + index_Step + 3*ll + 2]*x[(pp-1)*n_per_dt + index_Forces + 3*ll + 1]);
+
+         // cross_P(1) = vect_A(2) * vect_B(0) - vect_A(0) * vect_B(2);
+         sum_cross_y += x[(pp-1)*n_per_dt + index_CoM_pos + 1] - ( x[(pp-1)*n_per_dt + index_Step + 3*ll + 2]*x[(pp-1)*n_per_dt + index_Forces + 3*ll + 0]
+                                                                                -  x[(pp-1)*n_per_dt + index_Step + 3*ll + 0]*x[(pp-1)*n_per_dt + index_Forces + 3*ll + 2]);
+
+         // cross_P(2) = vect_A(0) * vect_B(1) - vect_A(1) * vect_B(0);
+         sum_cross_z += x[(pp-1)*n_per_dt + index_CoM_pos + 2] - ( x[(pp-1)*n_per_dt + index_Step + 3*ll + 0]*x[(pp-1)*n_per_dt + index_Forces + 3*ll + 1]
+                                                                                -  x[(pp-1)*n_per_dt + index_Step + 3*ll + 1]*x[(pp-1)*n_per_dt + index_Forces + 3*ll + 0]);
+
+       }
+       g[pp*g_per_dt + index_conF_eq_6 + 0] = x[pp*n_per_dt + index_CoM_ang + 0] - sum_cross_x*dt -  x[(pp-1)*n_per_dt + index_CoM_ang + 0]; //x
+       g[pp*g_per_dt + index_conF_eq_6 + 1] = x[pp*n_per_dt + index_CoM_ang + 1] - sum_cross_y*dt -  x[(pp-1)*n_per_dt + index_CoM_ang + 1]; //y
+       g[pp*g_per_dt + index_conF_eq_6 + 2] = x[pp*n_per_dt + index_CoM_ang + 2] - sum_cross_z*dt -  x[(pp-1)*n_per_dt + index_CoM_ang + 2]; //z
+
+       g[pp*g_per_dt + index_conF_eq_7 + 0] = x[pp*n_per_dt + index_CoM_pos + 0] -  x[(pp-1)*n_per_dt + index_CoM_pos + 0] - 1/p_agent->mass*x[(pp-1)*n_per_dt + index_CoM_lin + 0]*dt; //x
+       g[pp*g_per_dt + index_conF_eq_7 + 1] = x[pp*n_per_dt + index_CoM_pos + 1] -  x[(pp-1)*n_per_dt + index_CoM_pos + 1] - 1/p_agent->mass*x[(pp-1)*n_per_dt + index_CoM_lin + 1]*dt; //y
+       g[pp*g_per_dt + index_conF_eq_7 + 2] = x[pp*n_per_dt + index_CoM_pos + 2] -  x[(pp-1)*n_per_dt + index_CoM_pos + 2] - 1/p_agent->mass*x[(pp-1)*n_per_dt + index_CoM_lin + 2]*dt; //z
+
      }
 
-     g[pp*g_per_dt + index_conF_eq_5 + 0] = x[pp*n_per_dt + index_CoM_lin + 0] - (sumf_x + p_agent->mass*p_agent->g)*dt -  x[(pp-1)*n_per_dt + index_CoM_lin + 0]; //x
-     g[pp*g_per_dt + index_conF_eq_5 + 1] = x[pp*n_per_dt + index_CoM_lin + 1] - (sumf_y + p_agent->mass*p_agent->g)*dt -  x[(pp-1)*n_per_dt + index_CoM_lin + 1]; //y
-     g[pp*g_per_dt + index_conF_eq_5 + 2] = x[pp*n_per_dt + index_CoM_lin + 2] - (sumf_z + p_agent->mass*p_agent->g)*dt -  x[(pp-1)*n_per_dt + index_CoM_lin + 2]; //z
-
-     double sum_cross_x = 0, sum_cross_y = 0, sum_cross_z = 0;
-     for(int ll=0; ll<p_agent->k_legs; ll++)
-     {
-       // cross_P(0) = vect_A(0) * vect_B(0) - vect_A(2) * vect_B(1);
-       sum_cross_x += x[(pp-1)*n_per_dt + index_CoM_pos + 0] - ( x[(pp-1)*n_per_dt + index_Step + 3*ll + 0]*x[(pp-1)*n_per_dt + index_Forces + 3*ll + 0]
-                                                                              -  x[(pp-1)*n_per_dt + index_Step + 3*ll + 2]*x[(pp-1)*n_per_dt + index_Forces + 3*ll + 1]);
-
-       // cross_P(1) = vect_A(2) * vect_B(0) - vect_A(0) * vect_B(2);
-       sum_cross_y += x[(pp-1)*n_per_dt + index_CoM_pos + 1] - ( x[(pp-1)*n_per_dt + index_Step + 3*ll + 2]*x[(pp-1)*n_per_dt + index_Forces + 3*ll + 0]
-                                                                              -  x[(pp-1)*n_per_dt + index_Step + 3*ll + 0]*x[(pp-1)*n_per_dt + index_Forces + 3*ll + 2]);
-
-       // cross_P(2) = vect_A(0) * vect_B(1) - vect_A(1) * vect_B(0);
-       sum_cross_z += x[(pp-1)*n_per_dt + index_CoM_pos + 2] - ( x[(pp-1)*n_per_dt + index_Step + 3*ll + 0]*x[(pp-1)*n_per_dt + index_Forces + 3*ll + 1]
-                                                                              -  x[(pp-1)*n_per_dt + index_Step + 3*ll + 1]*x[(pp-1)*n_per_dt + index_Forces + 3*ll + 0]);
-
-     }
-     g[pp*g_per_dt + index_conF_eq_6 + 0] = x[pp*n_per_dt + index_CoM_ang + 0] - sum_cross_x*dt -  x[(pp-1)*n_per_dt + index_CoM_ang + 0]; //x
-     g[pp*g_per_dt + index_conF_eq_6 + 1] = x[pp*n_per_dt + index_CoM_ang + 1] - sum_cross_y*dt -  x[(pp-1)*n_per_dt + index_CoM_ang + 1]; //y
-     g[pp*g_per_dt + index_conF_eq_6 + 2] = x[pp*n_per_dt + index_CoM_ang + 2] - sum_cross_z*dt -  x[(pp-1)*n_per_dt + index_CoM_ang + 2]; //z
-
-     g[pp*g_per_dt + index_conF_eq_7 + 0] = x[pp*n_per_dt + index_CoM_pos + 0] -  x[(pp-1)*n_per_dt + index_CoM_pos + 0] - 1/p_agent->mass*x[(pp-1)*n_per_dt + index_CoM_lin + 0]*dt; //x
-     g[pp*g_per_dt + index_conF_eq_7 + 1] = x[pp*n_per_dt + index_CoM_pos + 1] -  x[(pp-1)*n_per_dt + index_CoM_pos + 1] - 1/p_agent->mass*x[(pp-1)*n_per_dt + index_CoM_lin + 1]*dt; //y
-     g[pp*g_per_dt + index_conF_eq_7 + 2] = x[pp*n_per_dt + index_CoM_pos + 2] -  x[(pp-1)*n_per_dt + index_CoM_pos + 2] - 1/p_agent->mass*x[(pp-1)*n_per_dt + index_CoM_lin + 2]*dt; //z
 
    }
+   std::cout<<"END eval_g"<<std::endl;
 
   return true;
 }
@@ -381,6 +440,7 @@ bool CentroidalNLP::eval_jac_g(
    Number*       values
 )
 {
+  std::cout<<"START eval_jac_g"<<std::endl;
 
   for(int pp =0; pp < n_points; pp++)
   {
@@ -404,7 +464,6 @@ bool CentroidalNLP::eval_jac_g(
           //eq 1
           for(int ll=0; ll<p_agent->k_legs; ll++)
           {
-
 
             for(int inner_ll=0; inner_ll<p_agent->k_legs; inner_ll++)
             {
@@ -481,30 +540,14 @@ bool CentroidalNLP::eval_jac_g(
           //eq 5
 
           // l_x
-          values[pp*nnz_jac_g_per_dt + index_partial_eq_5 + 0] = -1; //dl_x
-
-          for(int inner_ll=0; inner_ll<p_agent->k_legs; inner_ll++)
-          {
-            values[pp*nnz_jac_g_per_dt + index_partial_eq_5 + (1+inner_ll) ] = -dt; //dfi_x
-          }
+          values[pp*nnz_jac_g_per_dt + index_partial_eq_5 + 0] = 1; //dl_x
 
           // l_y
-          values[pp*nnz_jac_g_per_dt + index_partial_eq_5 + (1+p_agent->k_legs) ] = -1; //dl_y
-
-
-          for(int inner_ll=0; inner_ll<p_agent->k_legs; inner_ll++)
-          {
-            values[pp*nnz_jac_g_per_dt + index_partial_eq_5 + (1+p_agent->k_legs) + (1+inner_ll)] = -dt; //dfi_y
-          }
+          values[pp*nnz_jac_g_per_dt + index_partial_eq_5 + 1] = 1; //dl_y
 
           // l_z
-          values[pp*nnz_jac_g_per_dt + index_partial_eq_5 + 2*(1+p_agent->k_legs)] = -1; //dl_z
+          values[pp*nnz_jac_g_per_dt + index_partial_eq_5 + 2] = 1; //dl_z
 
-
-          for(int inner_ll=0; inner_ll<p_agent->k_legs; inner_ll++)
-          {
-            values[pp*nnz_jac_g_per_dt + index_partial_eq_5 + 2*(1+p_agent->k_legs) + (1+inner_ll)] = -dt; //dfi_z
-          }
 
 
 
@@ -512,63 +555,29 @@ bool CentroidalNLP::eval_jac_g(
           //eq 6
 
           // k_x
-          values[pp*nnz_jac_g_per_dt + index_partial_eq_6 + 0] = -dt; //dc_x
-          values[pp*nnz_jac_g_per_dt + index_partial_eq_6 + 1] = -1; //dk_x
-
-
-          for(int inner_ll=0; inner_ll<p_agent->k_legs; inner_ll++)
-          {
-            values[pp*nnz_jac_g_per_dt + index_partial_eq_6 + 4*inner_ll + 2] = x[pp*n_per_dt + index_Step + 3*inner_ll + 0]*dt; //dfi_x
-            values[pp*nnz_jac_g_per_dt + index_partial_eq_6 + 4*inner_ll + 3] = -x[pp*n_per_dt + index_Step + 3*inner_ll + 2]*dt; //dfi_y
-
-            values[pp*nnz_jac_g_per_dt + index_partial_eq_6 + 4*inner_ll + 4] = x[pp*n_per_dt + index_Forces + 3*inner_ll + 0]*dt; //dsi_x
-            values[pp*nnz_jac_g_per_dt + index_partial_eq_6 + 4*inner_ll + 5] = -x[pp*n_per_dt + index_Forces + 3*inner_ll + 1]*dt; //dsi_z
-          }
+          values[pp*nnz_jac_g_per_dt + index_partial_eq_6 + 0] = 1; //dc_x
 
           // k_y
-          values[pp*nnz_jac_g_per_dt + index_partial_eq_6 + (2 + p_agent->k_legs*4) + 0] = -dt; //dc_y
-          values[pp*nnz_jac_g_per_dt + index_partial_eq_6 + (2 + p_agent->k_legs*4) + 1] = -1; //dk_y
-
-          for(int inner_ll=0; inner_ll<p_agent->k_legs; inner_ll++)
-          {
-            values[pp*nnz_jac_g_per_dt + index_partial_eq_6 + (2 + p_agent->k_legs*4) + 4*inner_ll + 2] = x[pp*n_per_dt + index_Step + 3*inner_ll + 2]*dt; //dfi_x
-            values[pp*nnz_jac_g_per_dt + index_partial_eq_6 + (2 + p_agent->k_legs*4) + 4*inner_ll + 3] = -x[pp*n_per_dt + index_Step + 3*inner_ll + 0]*dt; //dfi_z
-
-            values[pp*nnz_jac_g_per_dt + index_partial_eq_6 + (2 + p_agent->k_legs*4) + 4*inner_ll + 4] = -x[pp*n_per_dt + index_Forces + 3*inner_ll + 2]*dt; //dsi_x
-            values[pp*nnz_jac_g_per_dt + index_partial_eq_6 + (2 + p_agent->k_legs*4) + 4*inner_ll + 5] = x[pp*n_per_dt + index_Forces + 3*inner_ll + 0]*dt; //dsi_z
-          }
+          values[pp*nnz_jac_g_per_dt + index_partial_eq_6 + 1] = 1; //dc_y
 
           // k_z
-          values[pp*nnz_jac_g_per_dt + index_partial_eq_6 + 2*(2 + p_agent->k_legs*4) + 0] = -dt; //dc_z
-          values[pp*nnz_jac_g_per_dt + index_partial_eq_6 + 2*(2 + p_agent->k_legs*4) + 1] = -1; //dk_z
-
-          for(int inner_ll=0; inner_ll<p_agent->k_legs; inner_ll++)
-          {
-            values[pp*nnz_jac_g_per_dt + index_partial_eq_6 + 2*(2 + p_agent->k_legs*4) + 4*inner_ll + 2] = -x[pp*n_per_dt + index_Step + 3*inner_ll + 1]*dt; //dfi_x
-            values[pp*nnz_jac_g_per_dt + index_partial_eq_6 + 2*(2 + p_agent->k_legs*4) + 4*inner_ll + 3] = x[pp*n_per_dt + index_Step + 3*inner_ll + 0]*dt; //dfi_y
-
-            values[pp*nnz_jac_g_per_dt + index_partial_eq_6 + 2*(2 + p_agent->k_legs*4) + 4*inner_ll + 4] = x[pp*n_per_dt + index_Forces + 3*inner_ll + 1]*dt; //dsi_x
-            values[pp*nnz_jac_g_per_dt + index_partial_eq_6 + 2*(2 + p_agent->k_legs*4) + 4*inner_ll + 5] = -x[pp*n_per_dt + index_Forces + 3*inner_ll + 0]*dt; //dsi_y
-          }
+          values[pp*nnz_jac_g_per_dt + index_partial_eq_6 + 2] = 1; //dc_z
 
 ////////////////////
           //eq 7
 
           // c_x
-          values[pp*nnz_jac_g_per_dt + index_partial_eq_7 + 0] = -1; //dc_x
-          values[pp*nnz_jac_g_per_dt + index_partial_eq_7 + 1] = -dt/p_agent->mass; //dl_x
-
+          values[pp*nnz_jac_g_per_dt + index_partial_eq_7 + 0] = 1; //dc_x
 
           // c_y
-          values[pp*nnz_jac_g_per_dt + index_partial_eq_7 + 2] = -1; //dc_y
-          values[pp*nnz_jac_g_per_dt + index_partial_eq_7 + 3] = -dt/p_agent->mass; //dl_y
+          values[pp*nnz_jac_g_per_dt + index_partial_eq_7 + 1] = 1; //dc_y
 
           // c_z
-          values[pp*nnz_jac_g_per_dt + index_partial_eq_7 + 4] = -1; //dc_z
-          values[pp*nnz_jac_g_per_dt + index_partial_eq_7 + 5] = -dt/p_agent->mass; //dl_z
+          values[pp*nnz_jac_g_per_dt + index_partial_eq_7 + 2] = 1; //dc_z
 
       }
     }
+    std::cout<<"END eval_jac_g"<<std::endl;
 
    return true;
 }

@@ -22,7 +22,8 @@ int main(int argc, char** argv)
   // frequency
   double freq = 1/dt;
   // read data
-  vector<labels> desired = pass_csv("/home/despargy/master_g15_ws/src/legged_motion_planner/records/DesiredTrajectory01.csv", NUM_LEGS);
+  // vector<labels> desired = pass_csv("/home/despargy/master_g15_ws/src/legged_motion_planner/records/DesiredTrajectory01.csv", NUM_LEGS);
+  vector<labels> desired = pass_csv("/home/atom/master_ws/src/legged_motion_planner/records/DesiredTrajectory01.csv", NUM_LEGS);
 
   // points to solved
   int POINTS = desired.size(); // all data - same as desired
@@ -61,7 +62,7 @@ int main(int argc, char** argv)
     SmartPtr<CentroidalNLP> mynlp  = new CentroidalNLP(p_agent);
 
     mynlp->dt = dt;
-    mynlp->n_points = POINTS-1;
+    mynlp->n_points = POINTS-1; // USE THE FIRST AS INIT POINT - NOT SOLVE ANYTHING FOR THAT
     mynlp->desired = desired;
     bool init_state = mynlp->init_before_start();
 
