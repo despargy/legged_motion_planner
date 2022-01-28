@@ -328,42 +328,49 @@ bool CentroidalNLP::eval_g(
        g[pp*g_per_dt + index_conF_eq_4 + ll] = p_agent->mu*x[pp*n_per_dt + index_Forces + 3*ll + 2] + x[pp*n_per_dt + index_Forces + 3*ll + 1];
 
      }
+     // if (pp == 0)
+     // {
+     //
+     // }
+     // else
+     // {
+       double sumf_x = 0, sumf_y = 0, sumf_z = 0;
+       for(int ll=0; ll<p_agent->k_legs; ll++)
+       {
+         sumf_x += x[ pp*n_per_dt + index_Forces + 3*ll + 0];
+         sumf_y += x[ pp*n_per_dt + index_Forces + 3*ll + 1];
+         sumf_z += x[ pp*n_per_dt + index_Forces + 3*ll + 2];
+       }
 
-     double sumf_x = 0, sumf_y = 0, sumf_z = 0;
-     for(int ll=0; ll<p_agent->k_legs; ll++)
-     {
-       sumf_x += x[ pp*n_per_dt + index_Forces + 3*ll + 0];
-       sumf_y += x[ pp*n_per_dt + index_Forces + 3*ll + 1];
-       sumf_z += x[ pp*n_per_dt + index_Forces + 3*ll + 2];
-     }
+       g[pp*g_per_dt + index_conF_eq_5 + 0] = x[(pp+1)*n_per_dt + index_CoM_lin + 0] - (sumf_x + p_agent->mass*p_agent->g)*dt -  x[(pp)*n_per_dt + index_CoM_lin + 0]; //x
+       g[pp*g_per_dt + index_conF_eq_5 + 1] = x[(pp+1)*n_per_dt + index_CoM_lin + 1] - (sumf_y + p_agent->mass*p_agent->g)*dt -  x[(pp)*n_per_dt + index_CoM_lin + 1]; //y
+       g[pp*g_per_dt + index_conF_eq_5 + 2] = x[(pp+1)*n_per_dt + index_CoM_lin + 2] - (sumf_z + p_agent->mass*p_agent->g)*dt -  x[(pp)*n_per_dt + index_CoM_lin + 2]; //z
 
-     g[pp*g_per_dt + index_conF_eq_5 + 0] = x[pp*n_per_dt + index_CoM_lin + 0] - (sumf_x + p_agent->mass*p_agent->g)*dt -  x[(pp-1)*n_per_dt + index_CoM_lin + 0]; //x
-     g[pp*g_per_dt + index_conF_eq_5 + 1] = x[pp*n_per_dt + index_CoM_lin + 1] - (sumf_y + p_agent->mass*p_agent->g)*dt -  x[(pp-1)*n_per_dt + index_CoM_lin + 1]; //y
-     g[pp*g_per_dt + index_conF_eq_5 + 2] = x[pp*n_per_dt + index_CoM_lin + 2] - (sumf_z + p_agent->mass*p_agent->g)*dt -  x[(pp-1)*n_per_dt + index_CoM_lin + 2]; //z
+       double sum_cross_x = 0, sum_cross_y = 0, sum_cross_z = 0;
+       for(int ll=0; ll<p_agent->k_legs; ll++)
+       {
+         // cross_P(0) = vect_A(0) * vect_B(0) - vect_A(2) * vect_B(1);
+         sum_cross_x += x[(pp)*n_per_dt + index_CoM_pos + 0] - ( x[(pp)*n_per_dt + index_Step + 3*ll + 0]*x[(pp)*n_per_dt + index_Forces + 3*ll + 0]
+                                                                                -  x[(pp)*n_per_dt + index_Step + 3*ll + 2]*x[(pp)*n_per_dt + index_Forces + 3*ll + 1]);
 
-     double sum_cross_x = 0, sum_cross_y = 0, sum_cross_z = 0;
-     for(int ll=0; ll<p_agent->k_legs; ll++)
-     {
-       // cross_P(0) = vect_A(0) * vect_B(0) - vect_A(2) * vect_B(1);
-       sum_cross_x += x[(pp-1)*n_per_dt + index_CoM_pos + 0] - ( x[(pp-1)*n_per_dt + index_Step + 3*ll + 0]*x[(pp-1)*n_per_dt + index_Forces + 3*ll + 0]
-                                                                              -  x[(pp-1)*n_per_dt + index_Step + 3*ll + 2]*x[(pp-1)*n_per_dt + index_Forces + 3*ll + 1]);
+         // cross_P(1) = vect_A(2) * vect_B(0) - vect_A(0) * vect_B(2);
+         sum_cross_y += x[(pp)*n_per_dt + index_CoM_pos + 1] - ( x[(pp)*n_per_dt + index_Step + 3*ll + 2]*x[(pp)*n_per_dt + index_Forces + 3*ll + 0]
+                                                                                -  x[(pp)*n_per_dt + index_Step + 3*ll + 0]*x[(pp)*n_per_dt + index_Forces + 3*ll + 2]);
 
-       // cross_P(1) = vect_A(2) * vect_B(0) - vect_A(0) * vect_B(2);
-       sum_cross_y += x[(pp-1)*n_per_dt + index_CoM_pos + 1] - ( x[(pp-1)*n_per_dt + index_Step + 3*ll + 2]*x[(pp-1)*n_per_dt + index_Forces + 3*ll + 0]
-                                                                              -  x[(pp-1)*n_per_dt + index_Step + 3*ll + 0]*x[(pp-1)*n_per_dt + index_Forces + 3*ll + 2]);
+         // cross_P(2) = vect_A(0) * vect_B(1) - vect_A(1) * vect_B(0);
+         sum_cross_z += x[(pp)*n_per_dt + index_CoM_pos + 2] - ( x[(pp)*n_per_dt + index_Step + 3*ll + 0]*x[(pp)*n_per_dt + index_Forces + 3*ll + 1]
+                                                                                -  x[(pp)*n_per_dt + index_Step + 3*ll + 1]*x[(pp)*n_per_dt + index_Forces + 3*ll + 0]);
 
-       // cross_P(2) = vect_A(0) * vect_B(1) - vect_A(1) * vect_B(0);
-       sum_cross_z += x[(pp-1)*n_per_dt + index_CoM_pos + 2] - ( x[(pp-1)*n_per_dt + index_Step + 3*ll + 0]*x[(pp-1)*n_per_dt + index_Forces + 3*ll + 1]
-                                                                              -  x[(pp-1)*n_per_dt + index_Step + 3*ll + 1]*x[(pp-1)*n_per_dt + index_Forces + 3*ll + 0]);
+       }
+       g[pp*g_per_dt + index_conF_eq_6 + 0] = x[(pp+1)*n_per_dt + index_CoM_ang + 0] - sum_cross_x*dt -  x[(pp)*n_per_dt + index_CoM_ang + 0]; //x
+       g[pp*g_per_dt + index_conF_eq_6 + 1] = x[(pp+1)*n_per_dt + index_CoM_ang + 1] - sum_cross_y*dt -  x[(pp)*n_per_dt + index_CoM_ang + 1]; //y
+       g[pp*g_per_dt + index_conF_eq_6 + 2] = x[(pp+1)*n_per_dt + index_CoM_ang + 2] - sum_cross_z*dt -  x[(pp)*n_per_dt + index_CoM_ang + 2]; //z
 
-     }
-     g[pp*g_per_dt + index_conF_eq_6 + 0] = x[pp*n_per_dt + index_CoM_ang + 0] - sum_cross_x*dt -  x[(pp-1)*n_per_dt + index_CoM_ang + 0]; //x
-     g[pp*g_per_dt + index_conF_eq_6 + 1] = x[pp*n_per_dt + index_CoM_ang + 1] - sum_cross_y*dt -  x[(pp-1)*n_per_dt + index_CoM_ang + 1]; //y
-     g[pp*g_per_dt + index_conF_eq_6 + 2] = x[pp*n_per_dt + index_CoM_ang + 2] - sum_cross_z*dt -  x[(pp-1)*n_per_dt + index_CoM_ang + 2]; //z
+       g[pp*g_per_dt + index_conF_eq_7 + 0] = x[(pp+1)*n_per_dt + index_CoM_pos + 0] -  x[(pp)*n_per_dt + index_CoM_pos + 0] - 1/p_agent->mass*x[(pp)*n_per_dt + index_CoM_lin + 0]*dt; //x
+       g[pp*g_per_dt + index_conF_eq_7 + 1] = x[(pp+1)*n_per_dt + index_CoM_pos + 1] -  x[(pp)*n_per_dt + index_CoM_pos + 1] - 1/p_agent->mass*x[(pp)*n_per_dt + index_CoM_lin + 1]*dt; //y
+       g[pp*g_per_dt + index_conF_eq_7 + 2] = x[(pp+1)*n_per_dt + index_CoM_pos + 2] -  x[(pp)*n_per_dt + index_CoM_pos + 2] - 1/p_agent->mass*x[(pp)*n_per_dt + index_CoM_lin + 2]*dt; //z
 
-     g[pp*g_per_dt + index_conF_eq_7 + 0] = x[pp*n_per_dt + index_CoM_pos + 0] -  x[(pp-1)*n_per_dt + index_CoM_pos + 0] - 1/p_agent->mass*x[(pp-1)*n_per_dt + index_CoM_lin + 0]*dt; //x
-     g[pp*g_per_dt + index_conF_eq_7 + 1] = x[pp*n_per_dt + index_CoM_pos + 1] -  x[(pp-1)*n_per_dt + index_CoM_pos + 1] - 1/p_agent->mass*x[(pp-1)*n_per_dt + index_CoM_lin + 1]*dt; //y
-     g[pp*g_per_dt + index_conF_eq_7 + 2] = x[pp*n_per_dt + index_CoM_pos + 2] -  x[(pp-1)*n_per_dt + index_CoM_pos + 2] - 1/p_agent->mass*x[(pp-1)*n_per_dt + index_CoM_lin + 2]*dt; //z
+     // }
 
    }
 
@@ -506,51 +513,56 @@ bool CentroidalNLP::eval_jac_g(
             values[pp*nnz_jac_g_per_dt + index_partial_eq_5 + 2*(1+p_agent->k_legs) + (1+inner_ll)] = -dt; //dfi_z
           }
 
-
-
 ////////////////////
           //eq 6
 
           // k_x
-          values[pp*nnz_jac_g_per_dt + index_partial_eq_6 + 0] = -dt; //dc_x
+          values[pp*nnz_jac_g_per_dt + index_partial_eq_6 + 0] = -2*dt; //dc_x
           values[pp*nnz_jac_g_per_dt + index_partial_eq_6 + 1] = -1; //dk_x
 
 
           for(int inner_ll=0; inner_ll<p_agent->k_legs; inner_ll++)
           {
-            values[pp*nnz_jac_g_per_dt + index_partial_eq_6 + 4*inner_ll + 2] = x[pp*n_per_dt + index_Step + 3*inner_ll + 0]*dt; //dfi_x
-            values[pp*nnz_jac_g_per_dt + index_partial_eq_6 + 4*inner_ll + 3] = -x[pp*n_per_dt + index_Step + 3*inner_ll + 2]*dt; //dfi_y
+            values[pp*nnz_jac_g_per_dt + index_partial_eq_6 + 2 + 2*inner_ll + 0] =  x[pp*n_per_dt + index_Step + 3*inner_ll + 0]*dt; //dfi_x
+            values[pp*nnz_jac_g_per_dt + index_partial_eq_6 + 2 + 2*inner_ll + 1] = -x[pp*n_per_dt + index_Step + 3*inner_ll + 2]*dt; //dfi_y
+          }
 
-            values[pp*nnz_jac_g_per_dt + index_partial_eq_6 + 4*inner_ll + 4] = x[pp*n_per_dt + index_Forces + 3*inner_ll + 0]*dt; //dsi_x
-            values[pp*nnz_jac_g_per_dt + index_partial_eq_6 + 4*inner_ll + 5] = -x[pp*n_per_dt + index_Forces + 3*inner_ll + 1]*dt; //dsi_z
+          for(int inner_ll=0; inner_ll<p_agent->k_legs; inner_ll++)
+          {
+            values[pp*nnz_jac_g_per_dt + index_partial_eq_6 + (2+2*p_agent->k_legs) + 2*inner_ll + 0] =  x[pp*n_per_dt + index_Forces + 3*inner_ll + 0]*dt; //dsi_x
+            values[pp*nnz_jac_g_per_dt + index_partial_eq_6 + (2+2*p_agent->k_legs) + 2*inner_ll + 1] = -x[pp*n_per_dt + index_Forces + 3*inner_ll + 1]*dt; //dsi_z
           }
 
           // k_y
-          values[pp*nnz_jac_g_per_dt + index_partial_eq_6 + (2 + p_agent->k_legs*4) + 0] = -dt; //dc_y
+          values[pp*nnz_jac_g_per_dt + index_partial_eq_6 + (2 + p_agent->k_legs*4) + 0] = -2*dt; //dc_y
           values[pp*nnz_jac_g_per_dt + index_partial_eq_6 + (2 + p_agent->k_legs*4) + 1] = -1; //dk_y
 
           for(int inner_ll=0; inner_ll<p_agent->k_legs; inner_ll++)
           {
-            values[pp*nnz_jac_g_per_dt + index_partial_eq_6 + (2 + p_agent->k_legs*4) + 4*inner_ll + 2] = x[pp*n_per_dt + index_Step + 3*inner_ll + 2]*dt; //dfi_x
-            values[pp*nnz_jac_g_per_dt + index_partial_eq_6 + (2 + p_agent->k_legs*4) + 4*inner_ll + 3] = -x[pp*n_per_dt + index_Step + 3*inner_ll + 0]*dt; //dfi_z
+            values[pp*nnz_jac_g_per_dt + index_partial_eq_6 + (2 + p_agent->k_legs*4) + 2 + 2*inner_ll + 0] =  x[pp*n_per_dt + index_Step + 3*inner_ll + 2]*dt; //dfi_x
+            values[pp*nnz_jac_g_per_dt + index_partial_eq_6 + (2 + p_agent->k_legs*4) + 2 + 2*inner_ll + 1] = -x[pp*n_per_dt + index_Step + 3*inner_ll + 0]*dt; //dfi_z
+          }
 
-            values[pp*nnz_jac_g_per_dt + index_partial_eq_6 + (2 + p_agent->k_legs*4) + 4*inner_ll + 4] = -x[pp*n_per_dt + index_Forces + 3*inner_ll + 2]*dt; //dsi_x
-            values[pp*nnz_jac_g_per_dt + index_partial_eq_6 + (2 + p_agent->k_legs*4) + 4*inner_ll + 5] = x[pp*n_per_dt + index_Forces + 3*inner_ll + 0]*dt; //dsi_z
+          for(int inner_ll=0; inner_ll<p_agent->k_legs; inner_ll++)
+          {
+            values[pp*nnz_jac_g_per_dt + index_partial_eq_6 + (2 + p_agent->k_legs*4) + (2+2*p_agent->k_legs) + 2*inner_ll + 0] = -x[pp*n_per_dt + index_Forces + 3*inner_ll + 2]*dt; //dsi_x
+            values[pp*nnz_jac_g_per_dt + index_partial_eq_6 + (2 + p_agent->k_legs*4) + (2+2*p_agent->k_legs) + 2*inner_ll + 1] =  x[pp*n_per_dt + index_Forces + 3*inner_ll + 0]*dt; //dsi_z
           }
 
           // k_z
-          values[pp*nnz_jac_g_per_dt + index_partial_eq_6 + 2*(2 + p_agent->k_legs*4) + 0] = -dt; //dc_z
+          values[pp*nnz_jac_g_per_dt + index_partial_eq_6 + 2*(2 + p_agent->k_legs*4) + 0] = -2*dt; //dc_z
           values[pp*nnz_jac_g_per_dt + index_partial_eq_6 + 2*(2 + p_agent->k_legs*4) + 1] = -1; //dk_z
 
           for(int inner_ll=0; inner_ll<p_agent->k_legs; inner_ll++)
           {
-            values[pp*nnz_jac_g_per_dt + index_partial_eq_6 + 2*(2 + p_agent->k_legs*4) + 4*inner_ll + 2] = -x[pp*n_per_dt + index_Step + 3*inner_ll + 1]*dt; //dfi_x
-            values[pp*nnz_jac_g_per_dt + index_partial_eq_6 + 2*(2 + p_agent->k_legs*4) + 4*inner_ll + 3] = x[pp*n_per_dt + index_Step + 3*inner_ll + 0]*dt; //dfi_y
-
-            values[pp*nnz_jac_g_per_dt + index_partial_eq_6 + 2*(2 + p_agent->k_legs*4) + 4*inner_ll + 4] = x[pp*n_per_dt + index_Forces + 3*inner_ll + 1]*dt; //dsi_x
-            values[pp*nnz_jac_g_per_dt + index_partial_eq_6 + 2*(2 + p_agent->k_legs*4) + 4*inner_ll + 5] = -x[pp*n_per_dt + index_Forces + 3*inner_ll + 0]*dt; //dsi_y
+            values[pp*nnz_jac_g_per_dt + index_partial_eq_6 + 2*(2 + p_agent->k_legs*4) + 2 + 2*inner_ll + 0] = -x[pp*n_per_dt + index_Step + 3*inner_ll + 1]*dt; //dfi_x
+            values[pp*nnz_jac_g_per_dt + index_partial_eq_6 + 2*(2 + p_agent->k_legs*4) + 2 + 2*inner_ll + 1] =  x[pp*n_per_dt + index_Step + 3*inner_ll + 0]*dt; //dfi_y
           }
-
+          for(int inner_ll=0; inner_ll<p_agent->k_legs; inner_ll++)
+          {
+            values[pp*nnz_jac_g_per_dt + index_partial_eq_6 + 2*(2 + p_agent->k_legs*4) + (2+2*p_agent->k_legs) + 2*inner_ll + 0] =  x[pp*n_per_dt + index_Forces + 3*inner_ll + 1]*dt; //dsi_x
+            values[pp*nnz_jac_g_per_dt + index_partial_eq_6 + 2*(2 + p_agent->k_legs*4) + (2+2*p_agent->k_legs) + 2*inner_ll + 1] = -x[pp*n_per_dt + index_Forces + 3*inner_ll + 0]*dt; //dsi_y
+          }
 ////////////////////
           //eq 7
 
