@@ -22,8 +22,8 @@ int main(int argc, char** argv)
   // frequency
   double freq = 1/dt;
   // read data
-  // vector<labels> desired = pass_csv("/home/despargy/master_g15_ws/src/legged_motion_planner/records/DesiredTrajectory01.csv", NUM_LEGS);
-  vector<labels> desired = pass_csv("/home/atom/master_ws/src/legged_motion_planner/records/DesiredTrajectory01.csv", NUM_LEGS);
+  vector<labels> desired = pass_csv("/home/despargy/master_g15_ws/src/legged_motion_planner/records/DesiredTrajectory01.csv", NUM_LEGS);
+  // vector<labels> desired = pass_csv("/home/atom/master_ws/src/legged_motion_planner/records/DesiredTrajectory01.csv", NUM_LEGS);
 
   // points to solved
   int POINTS = desired.size(); // all data - same as desired
@@ -71,18 +71,24 @@ int main(int argc, char** argv)
     // Create an instance of the IpoptApplication
     SmartPtr<IpoptApplication> app = IpoptApplicationFactory();
     /* define parameters */
-    app->RethrowNonIpoptException(true);
+    // app->RethrowNonIpoptException(true);
 
-    app->Options()->SetNumericValue("tol", 1e-6);
-    app->Options()->SetNumericValue("mu_init", 1e-2);
-    app->Options()->SetNumericValue("max_iter", 3000);
-    app->Options()->SetNumericValue("print_level", 5);
+    // app->Options()->SetNumericValue("tol", 1e-6);
+    // app->Options()->SetNumericValue("mu_init", 1e-3);
+    // app->Options()->SetNumericValue("max_iter", 3000);
+    // app->Options()->SetNumericValue("print_level", 5);
+    // app->Options()->SetStringValue("check_derivatives_for_naninf", "yes");
+    //
+    // app->Options()->SetStringValue("nlp_scaling_method", "none");
+    // app->Options()->SetStringValue("mu_strategy", "adaptive");
+    // app->Options()->SetStringValue("hessian_approximation", "limited-memory");
+    // app->Options()->SetStringValue("jacobian_approximation", "finite-difference-values");
 
-    app->Options()->SetStringValue("nlp_scaling_method", "none");
-    app->Options()->SetStringValue("mu_strategy", "adaptive");
-    app->Options()->SetStringValue("output_file", "ipopt.out");
-    app->Options()->SetStringValue("hessian_approximation", "limited-memory");
+    // The following overwrites the default name (ipopt.opt) of the
+    // options file
+    app->Options()->SetStringValue("option_file_name", "/home/despargy/master_g15_ws/src/legged_motion_planner/src/ipopt.opt");
 
+    app->Options()->SetStringValue("output_file", "/home/despargy/master_g15_ws/src/legged_motion_planner/src/ipopt.out");
 
     // Initialize the IpoptApplication and process the options
     ApplicationReturnStatus status;

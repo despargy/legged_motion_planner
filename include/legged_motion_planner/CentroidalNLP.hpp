@@ -8,7 +8,6 @@
 // #include <Eigen/Dense>
 #include <iostream>
 #include "legged_motion_planner/Agent.hpp"
-#include <legged_motion_planner/NumericalIntegrationConstraints.hpp>
 #include <legged_motion_planner/labels.h>
 
 using namespace Ipopt;
@@ -166,8 +165,6 @@ public:
      CentroidalNLP& operator=(
         const CentroidalNLP&
      );
-     //@}
-     NumericalIntegrationConstraints integration_constr;
 
   };
 

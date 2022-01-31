@@ -40,6 +40,6 @@ include_directories("${PROJECT_BINARY_DIR}" /usr/local/include/coin-or/)
 
 
 # creation of an executable
-add_executable(planner src/main.cpp src/CentroidalNLP.cpp src/Agent.cpp  src/NumericalIntegrationConstraints.cpp)
+add_executable(planner src/main.cpp src/CentroidalNLP.cpp src/Agent.cpp)
 target_link_libraries(planner ${catkin_LIBRARIES} ipopt)
 #set_target_properties(planner PROPERTIES COMPILE_FLAGS "-std=c++11 -o3")

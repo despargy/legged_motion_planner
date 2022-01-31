@@ -8,7 +8,7 @@ Agent::Agent()
   mass = 72.0; //kg
   height = 1.20952; //m
 
-   wl = 1.0; wk=0.8; wf=1.2; ws =0.9; //TODO fix weights
+   wl =1; wk=2; wf=2; ws =2; //TODO fix weights
    mu = 0.8;
 
  }
