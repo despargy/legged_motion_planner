@@ -194,6 +194,11 @@ bool CentroidalNLP::get_starting_point(
    assert(init_z == false);
    assert(init_lambda == false);
 
+   for (int i=0; i < n; i++)
+   {
+     x[i] = 0;
+   }
+
    // CoM Position
    x[index_CoM_pos+0] = desired[0].CoM_positions(0);
    x[index_CoM_pos+1] = desired[0].CoM_positions(1);
@@ -223,56 +228,98 @@ bool CentroidalNLP::get_starting_point(
    }
 
    // Steps, for each leg
-   for(int ll=0; ll < p_agent->k_legs; ll++) //k_legs //TODO
+   for(int ll=0; ll < p_agent->k_legs; ll++) //k_legs
    {
      // Init Foot Step Posiotion
      x[index_Step + 3*ll + 0] = desired[0].foot_position_v[ll](0); //x
      x[index_Step + 3*ll + 1] = desired[0].foot_position_v[ll](1); //y
      x[index_Step + 3*ll + 2] = desired[0].foot_position_v[ll](2); //z
    }
-   // std::cout<<"here"<<std::endl;
 
    for(int pp=1; pp<n_points; pp++)
    {
      // std::cout<<"pp*g_per_dt = "<<pp*n_per_dt<<"\n"<<std::endl;
+     // CoM Position
+     x[pp*n_per_dt + index_CoM_pos+0] = desired[pp+1].CoM_positions(0);
+     x[pp*n_per_dt + index_CoM_pos+1] = desired[pp+1].CoM_positions(1);
+     x[pp*n_per_dt + index_CoM_pos+2] = desired[pp+1].CoM_positions(2);
 
-        // CoM Position
-        x[pp*n_per_dt + index_CoM_pos+0] = x[(pp-1)*n_per_dt + index_CoM_pos+0];
-        x[pp*n_per_dt + index_CoM_pos+1] = x[(pp-1)*n_per_dt + index_CoM_pos+1];
-        x[pp*n_per_dt + index_CoM_pos+2] = x[(pp-1)*n_per_dt + index_CoM_pos+2];
+     // // CoM Lin
+     x[pp*n_per_dt + index_CoM_lin + 0] = desired[pp+1].CoM_linear_velocities(0);
+     x[pp*n_per_dt + index_CoM_lin + 1] = desired[pp+1].CoM_linear_velocities(1);
+     x[pp*n_per_dt + index_CoM_lin + 2] = desired[pp+1].CoM_linear_velocities(2);
 
-        // // CoM Lin
-        x[pp*n_per_dt + index_CoM_lin + 0] = x[(pp-1)*n_per_dt + index_CoM_lin + 0];
-        x[pp*n_per_dt + index_CoM_lin + 1] = x[(pp-1)*n_per_dt + index_CoM_lin + 1];
-        x[pp*n_per_dt + index_CoM_lin + 2] = x[(pp-1)*n_per_dt + index_CoM_lin + 2];
+     for(int i=index_CoM_ang; i < index_Forces; i++) //3
+     {
+       // CoM Ang
+       x[pp*n_per_dt + i] = 0;
+     }
 
-        for(int i=index_CoM_ang; i < index_Forces; i++) //3
-        {
-          // CoM Ang
-          x[pp*n_per_dt + i] = x[(pp-1)*n_per_dt + i];
-        }
+     //init Forces, for each leg
+     for(int ll=0; ll < p_agent->k_legs; ll++) //k_legs //TODO
+     {
+       // Init Foot Step Posiotion
 
-        //init Forces, for each leg
-        for(int ll=0; ll < p_agent->k_legs; ll++) //k_legs //TODO
-        {
-          // Init Foot Step Posiotion
+      //multi 3* since each legs has x y z
+       x[pp*n_per_dt + index_Forces + 3*ll + 0] = 0; //x
+       x[pp*n_per_dt + index_Forces + 3*ll + 1] = 0; //y
+       //split grav into each force foots
+       x[pp*n_per_dt + index_Forces + 3*ll + 2] = 0; // z
+     }
 
-         //multi 3* since each legs has x y z
-          x[pp*n_per_dt + index_Forces + 3*ll + 0] = x[(pp-1)*n_per_dt + index_Forces + 3*ll + 0]; //x
-          x[pp*n_per_dt + index_Forces + 3*ll + 1] = x[(pp-1)*n_per_dt + index_Forces + 3*ll + 1]; //y
-          //split grav into each force foots
-          x[pp*n_per_dt + index_Forces + 3*ll + 2] = x[(pp-1)*n_per_dt + index_Forces + 3*ll + 2]; // z
-        }
+     // Steps, for each leg
+     for(int ll=0; ll < p_agent->k_legs; ll++) //k_legs
+     {
+       // Init Foot Step Posiotion
+       x[pp*n_per_dt + index_Step + 3*ll + 0] = 0; //x
+       x[pp*n_per_dt + index_Step + 3*ll + 1] = 0; //y
+       x[pp*n_per_dt + index_Step + 3*ll + 2] = 0; //z
+     }
 
-        // Steps, for each leg
-        for(int ll=0; ll < p_agent->k_legs; ll++) //k_legs //TODO
-        {
-          // Init Foot Step Posiotion
-          x[pp*n_per_dt + index_Step + 3*ll + 0] = x[(pp-1)*n_per_dt + index_Step + 3*ll + 0]; //x
-          x[pp*n_per_dt + index_Step + 3*ll + 1] = x[(pp-1)*n_per_dt + index_Step + 3*ll + 1]; //y
-          x[pp*n_per_dt + index_Step + 3*ll + 2] = x[(pp-1)*n_per_dt + index_Step + 3*ll + 2]; //z
-        }
    }
+   // std::cout<<"here"<<std::endl;
+   //
+   // for(int pp=1; pp<n_points; pp++)
+   // {
+   //   // std::cout<<"pp*g_per_dt = "<<pp*n_per_dt<<"\n"<<std::endl;
+   //
+   //      // CoM Position
+   //      x[pp*n_per_dt + index_CoM_pos+0] = x[(pp-1)*n_per_dt + index_CoM_pos+0];
+   //      x[pp*n_per_dt + index_CoM_pos+1] = x[(pp-1)*n_per_dt + index_CoM_pos+1];
+   //      x[pp*n_per_dt + index_CoM_pos+2] = x[(pp-1)*n_per_dt + index_CoM_pos+2];
+   //
+   //      // // CoM Lin
+   //      x[pp*n_per_dt + index_CoM_lin + 0] = x[(pp-1)*n_per_dt + index_CoM_lin + 0];
+   //      x[pp*n_per_dt + index_CoM_lin + 1] = x[(pp-1)*n_per_dt + index_CoM_lin + 1];
+   //      x[pp*n_per_dt + index_CoM_lin + 2] = x[(pp-1)*n_per_dt + index_CoM_lin + 2];
+   //
+   //      for(int i=index_CoM_ang; i < index_Forces; i++) //3
+   //      {
+   //        // CoM Ang
+   //        x[pp*n_per_dt + i] = x[(pp-1)*n_per_dt + i];
+   //      }
+   //
+   //      //init Forces, for each leg
+   //      for(int ll=0; ll < p_agent->k_legs; ll++) //k_legs
+   //      {
+   //        // Init Foot Step Posiotion
+   //
+   //       //multi 3* since each legs has x y z
+   //        x[pp*n_per_dt + index_Forces + 3*ll + 0] = x[(pp-1)*n_per_dt + index_Forces + 3*ll + 0]; //x
+   //        x[pp*n_per_dt + index_Forces + 3*ll + 1] = x[(pp-1)*n_per_dt + index_Forces + 3*ll + 1]; //y
+   //        //split grav into each force foots
+   //        x[pp*n_per_dt + index_Forces + 3*ll + 2] = x[(pp-1)*n_per_dt + index_Forces + 3*ll + 2]; // z
+   //      }
+   //
+   //      // Steps, for each leg
+   //      for(int ll=0; ll < p_agent->k_legs; ll++) //k_legs
+   //      {
+   //        // Init Foot Step Posiotion
+   //        x[pp*n_per_dt + index_Step + 3*ll + 0] = x[(pp-1)*n_per_dt + index_Step + 3*ll + 0]; //x
+   //        x[pp*n_per_dt + index_Step + 3*ll + 1] = x[(pp-1)*n_per_dt + index_Step + 3*ll + 1]; //y
+   //        x[pp*n_per_dt + index_Step + 3*ll + 2] = x[(pp-1)*n_per_dt + index_Step + 3*ll + 2]; //z
+   //      }
+   // }
 
    return true;
 }
