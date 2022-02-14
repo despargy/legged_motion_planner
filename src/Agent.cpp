@@ -4,11 +4,11 @@ Agent::Agent()
 {
   printf("This is from 'AGENT' constructor\n");
 
-  g = 9.8; //m/s^2
+  g = -9.8; //m/s^2
   mass = 174.25; //kg
   height = 1.20952; //m
 
-   wl =1; wk=05; wf=20; ws =20; //TODO fix weights
+   wl =1; wk=0.5; wf=200; ws =200; //TODO fix weights
    mu = 0.8;
 
  }
@@ -21,9 +21,11 @@ void Agent::setDim(int dim_){
   world_dim = dim_;
 }
 
-void Agent::setLegs(int legs_){
+void Agent::setLegs(int legs_, int legs_cont_){
 
   k_legs = legs_;
+  contact_legs = legs_cont_;
+
 }
 
 

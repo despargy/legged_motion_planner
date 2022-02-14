@@ -50,7 +50,9 @@ vector<labels> pass_csv(string fname, int NUM_LEGS)
 
     for(int ll=0; ll < NUM_LEGS; ll++)
     {
-      intp.foot_position_v[ll](0)=stod(content[i][j]); j++;intp.foot_position_v[ll](1)=stod(content[i][j]); j++; intp.foot_position_v[ll](2)=stod(content[i][j]); j++;
+      intp.foot_position_v[ll](0)=stod(content[i][j]); j++;
+			intp.foot_position_v[ll](1)=stod(content[i][j]); j++;
+			intp.foot_position_v[ll](2)=stod(content[i][j]); j++;
     }
 
     intp.ZMP_positions(0)=stod(content[i][j]); j++;intp.ZMP_positions(1)=stod(content[i][j]); j++; intp.ZMP_positions(2)=stod(content[i][j]);

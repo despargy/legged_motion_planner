@@ -11,7 +11,7 @@ public:
   // by boxes we get the one cycle of leg locomotion
   //(ex. in bipedal:move forward  left + right foot - which is two individual steps)
   // (ex. in quaduapedal 4 individual steps is 1 cycle - means 1 box)
-  int world_dim, k_legs;
+  int world_dim, k_legs, contact_legs;
   double mass, g, height, mu;
   double horizon_time, dt;
   double wl, wk, wf, ws;
@@ -27,7 +27,7 @@ public:
   virtual ~Agent();
 
   void setDim(int dim_);
-  void setLegs(int legs_);
+  void setLegs(int legs_, int legs_cont_);
   void setDt(double dt_);
 
   void setHorizonTime(int time_h_);

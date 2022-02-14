@@ -373,7 +373,7 @@ bool CentroidalNLP::eval_f(
 
   }
 
-  obj_value = (p_agent->wl*sum2_l + p_agent->wk*sum2_k + p_agent->wf*sum2_Flegs + p_agent->ws*sum2_Slegs) ;
+  obj_value = 1/2*(p_agent->wl*sum2_l + p_agent->wk*sum2_k + p_agent->wf*sum2_Flegs + p_agent->ws*sum2_Slegs) ;
 
   return true;
 }

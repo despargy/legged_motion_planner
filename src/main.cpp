@@ -17,12 +17,14 @@ int main(int argc, char** argv)
   int WORLD_DIM = 3;
   //define legs
   int NUM_LEGS = 2;
+
+  int CONTACT_LEGS = 1;
   // dt
-  double dt = 0.01; // in sec
+  double dt = 0.001; // in sec
   // frequency
   double freq = 1/dt;
   // read data
-  vector<labels> desired = pass_csv("/home/despargy/master_g15_ws/src/legged_motion_planner/records/DesiredTrajectory01.csv", NUM_LEGS);
+  vector<labels> desired = pass_csv("/home/despargy/master_g15_ws/src/legged_motion_planner/records/DesiredTrajectory100.csv", NUM_LEGS);
   // vector<labels> desired = pass_csv("/home/atom/master_ws/src/legged_motion_planner/records/DesiredTrajectory01.csv", NUM_LEGS);
 
   // points to solved
@@ -41,7 +43,7 @@ int main(int argc, char** argv)
   Agent *p_agent = new Agent();
 
   p_agent->setDim(WORLD_DIM);
-  p_agent->setLegs(NUM_LEGS);
+  p_agent->setLegs(NUM_LEGS, CONTACT_LEGS);
   p_agent->setDt(dt);
 
   p_agent->setHorizonTime(HORIZON_TIME);
@@ -70,19 +72,6 @@ int main(int argc, char** argv)
 
     // Create an instance of the IpoptApplication
     SmartPtr<IpoptApplication> app = IpoptApplicationFactory();
-    /* define parameters */
-    // app->RethrowNonIpoptException(true);
-
-    // app->Options()->SetNumericValue("tol", 1e-6);
-    // app->Options()->SetNumericValue("mu_init", 1e-3);
-    // app->Options()->SetNumericValue("max_iter", 3000);
-    // app->Options()->SetNumericValue("print_level", 5);
-    // app->Options()->SetStringValue("check_derivatives_for_naninf", "yes");
-    //
-    // app->Options()->SetStringValue("nlp_scaling_method", "none");
-    // app->Options()->SetStringValue("mu_strategy", "adaptive");
-    // app->Options()->SetStringValue("hessian_approximation", "limited-memory");
-    // app->Options()->SetStringValue("jacobian_approximation", "finite-difference-values");
 
     // The following overwrites the default name (ipopt.opt) of the
     // options file
