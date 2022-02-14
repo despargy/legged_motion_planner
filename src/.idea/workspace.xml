@@ -2,20 +2,10 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="d6b97667-105b-44d5-ad24-0a49b5c4a8c9" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/../include/legged_motion_planner/Agent.hpp" beforeDir="false" afterPath="$PROJECT_DIR$/../include/legged_motion_planner/Agent.hpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../include/legged_motion_planner/CentroidalNLP.hpp" beforeDir="false" afterPath="$PROJECT_DIR$/../include/legged_motion_planner/CentroidalNLP.hpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../records/DesiredTrajectory00.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../records/DesiredTrajectory_0_100.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Agent.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Agent.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../results/solution.csv" beforeDir="false" afterPath="$PROJECT_DIR$/../results/solution.csv" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/CentroidalNLP.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/CentroidalNLP.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ipopt.opt" beforeDir="false" afterPath="$PROJECT_DIR$/ipopt.opt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/ipopt.out" beforeDir="false" afterPath="$PROJECT_DIR$/ipopt.out" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/main.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../useless_versions_ofNLP/CentroidalNLP_playing_k1.cpp" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../useless_versions_ofNLP/CentroidalNLP_without_k_timeopt_init.cpp" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../useless_versions_ofNLP/CentroidalNLP_withzerosinJacs.cpp" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../useless_versions_ofNLP/NumericalIntegrationConstraints.cpp" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../useless_versions_ofNLP/NumericalIntegrationConstraints.hpp" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

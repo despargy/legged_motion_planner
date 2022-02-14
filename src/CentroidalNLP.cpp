@@ -125,7 +125,7 @@ bool CentroidalNLP::get_bounds_info(
   //CoM z bounds ground - height
   for(int pp=0; pp<n_points; pp++)
   {
-    x_l[pp*n_per_dt + index_CoM_pos + 2] = p_agent->height - 0.5; x_u[pp*n_per_dt + index_CoM_pos + 2] = p_agent->height + 0.5;
+    x_l[pp*n_per_dt + index_CoM_pos + 2] = p_agent->height - 0.1; x_u[pp*n_per_dt + index_CoM_pos + 2] = p_agent->height + 0.1;
 
     // bound Fz >= 0
     for(int ll=0; ll<p_agent->k_legs; ll++)
